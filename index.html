@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <title>Control Purificator</title>
+    <style>
+        body { background: #0f172a; color: white; font-family: sans-serif; display: flex; justify-content: center; padding-top: 50px; }
+        .dashboard { background: #1e293b; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 350px; }
+        .val-container { margin: 20px 0; border-bottom: 1px solid #334155; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .label { color: #94a3b8; font-size: 14px; }
+        .value { font-size: 24px; color: #38bdf8; font-weight: bold; }
+        h2 { margin-top: 0; color: #f1f5f9; border-bottom: 2px solid #38bdf8; padding-bottom: 10px; }
+        button { flex: 1; padding: 12px; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        button:active { transform: scale(0.98); }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <h2>Live Air Monitor</h2>
+        <div class="val-container"><div class="label">CO2 Level</div><div id="co2" class="value">--</div></div>
+        <div class="val-container"><div class="label">TVOC Level</div><div id="tvoc" class="value">--</div></div>
+        <div class="val-container"><div class="label">Temperatură</div><div id="temp" class="value">--</div></div>
+        <div class="val-container"><div class="label">Umiditate</div><div id="hum" class="value">--</div></div>
+        <div class="val-container"><div class="label">Fan Speed</div><div id="fan" class="value">--</div></div>
+        
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button onclick="sendCmd('turbo')" style="background: #ef4444;">TURBO</button>
+            <button onclick="sendCmd('auto')" style="background: #10b981;">AUTO</button>
+            <button onclick="sendCmd('stop')" style="background: #64748b;">STOP</button>
+        </div>
+    </div>
+
+    <script>
+        async function updateData() {
+            try {
+                const res = await fetch('http://localhost:3000/api/view');
+                const data = await res.json();
+                document.getElementById('co2').innerText = (data.co2 || 0) + " ppm";
+                document.getElementById('tvoc').innerText = (data.tvoc || 0) + " ppb";
+                document.getElementById('temp').innerText = (data.temp ? data.temp.toFixed(1) : 0) + " °C";
+                document.getElementById('hum').innerText = (data.hum ? data.hum.toFixed(1) : 0) + " %";
+                document.getElementById('fan').innerText = (data.fan || 0) + " %";
+            } catch (e) { console.error("Eroare la citire:", e); }
+        }
+
+        async function sendCmd(tipComanda) {
+            try {
+                // Trimitere securizata cu format nativ JSON
+                await fetch('http://localhost:3000/api/command', {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cmd: tipComanda })
+                });
+            } catch (e) { console.error("Eroare la trimitere comanda:", e); }
+        }
+        
+        setInterval(updateData, 2000);
+        updateData();
+    </script>
+</body>
+</html>
