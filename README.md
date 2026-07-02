@@ -1,0 +1,2 @@
+# TRU--JORJ_CAIUS_APLICATIE_PRACTICA_AIA_LICENTA
+Cod Arduino+Backend+Frontend
